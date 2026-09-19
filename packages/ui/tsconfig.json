@@ -1,0 +1,13 @@
+{
+  "extends": "@gh/config/tsconfig.lib.json",
+  "compilerOptions": {
+    // outDir/rootDir are re-declared because relative paths in an extended config
+    // resolve against that config's own directory, not this package's.
+    "outDir": "dist",
+    "rootDir": "src",
+    "tsBuildInfoFile": "dist/.tsbuildinfo",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": []
+  },
+  "include": ["src"]
+}
