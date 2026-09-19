@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import List from '@mui/material/List';
-import type { RepoCardRepo, UiError } from '../types.js';
+import type { RepoCardRepo } from '../types.js';
 import { EmptyState } from './EmptyState.js';
-import { ErrorState } from './ErrorState.js';
+import { ErrorState, type ErrorStateProps } from './ErrorState.js';
 import { LoadingSkeleton } from './LoadingSkeleton.js';
 import { RepoListItem } from './RepoListItem.js';
 
@@ -13,8 +13,11 @@ export interface RepoListProps {
   onToggleTrack: (repo: RepoCardRepo) => void;
   onOpen?: ((repo: RepoCardRepo) => void) | undefined;
   loading?: boolean | undefined;
-  error?: UiError | undefined;
-  onRetry?: (() => void) | undefined;
+  /**
+   * Finished copy, not an error object: the list renders what it is handed. Including or
+   * omitting `onRetry` is how the caller says whether retrying is worth a request.
+   */
+  error?: ErrorStateProps | undefined;
   emptyState?: ReactNode | undefined;
   /** Pagination controls, an infinite-scroll sentinel — whatever the page needs. */
   footer?: ReactNode | undefined;
@@ -29,18 +32,12 @@ export function RepoList({
   onOpen,
   loading,
   error,
-  onRetry,
   emptyState,
   footer,
   busyIds,
 }: RepoListProps) {
   if (error) {
-    return (
-      <ErrorState
-        error={error}
-        onRetry={error.kind === 'generic' || error.kind === 'network' ? onRetry : undefined}
-      />
-    );
+    return <ErrorState {...error} />;
   }
 
   if (loading && items.length === 0) {

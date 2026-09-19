@@ -16,9 +16,9 @@ import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import type { RepoCardRepo, RepoStatus, UiError } from '../types.js';
+import type { RepoCardRepo, RepoStatus } from '../types.js';
 import { formatAbsoluteDate, formatCompactNumber, formatRelativeTime } from '../utils/format.js';
-import { ErrorState } from './ErrorState.js';
+import { ErrorState, type ErrorStateProps } from './ErrorState.js';
 import { LoadingSkeleton } from './LoadingSkeleton.js';
 import { StatTile } from './StatTile.js';
 
@@ -27,7 +27,7 @@ export interface RepoCardProps {
   /** The one prop that drives every per-card visual. See `RepoStatus`. */
   status?: RepoStatus | undefined;
   /** Rendered as an inline strip. The card keeps its stale values on screen beside it. */
-  error?: UiError | undefined;
+  error?: ErrorStateProps | undefined;
   onRefresh?: (() => void) | undefined;
   onUntrack?: (() => void) | undefined;
   /** Navigate to the detail page. The card emits; the app decides what that means. */
@@ -160,7 +160,8 @@ export function RepoCard({
           />
         </Stack>
 
-        {error ? <ErrorState error={error} variant="inline" onRetry={onRefresh} now={now} /> : null}
+        {/* `onRetry` first so a caller that supplies its own still wins. */}
+        {error ? <ErrorState onRetry={onRefresh} {...error} variant="inline" /> : null}
       </CardContent>
 
       <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 1.5, pt: 0 }}>
