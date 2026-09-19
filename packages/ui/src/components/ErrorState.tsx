@@ -50,7 +50,10 @@ const ICONS: Record<ErrorKind, ReactNode> = {
   generic: <WarningAmberIcon fontSize="inherit" />,
 };
 
-function resetCopy(resetAt: string | undefined, now: Date | number | undefined): string | undefined {
+function resetCopy(
+  resetAt: string | undefined,
+  now: Date | number | undefined,
+): string | undefined {
   if (!resetAt) return undefined;
   const target = new Date(resetAt).getTime();
   if (Number.isNaN(target)) return undefined;

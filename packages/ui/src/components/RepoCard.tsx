@@ -91,14 +91,29 @@ export function RepoCard({
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography variant="h3" component="h2" noWrap title={repo.fullName}>
               {onOpen ? (
-                <Link component="button" type="button" onClick={onOpen} color="inherit" sx={{ textAlign: 'left' }}>
+                <Link
+                  component="button"
+                  type="button"
+                  onClick={onOpen}
+                  color="inherit"
+                  sx={{ textAlign: 'left' }}
+                >
                   {repo.fullName}
                 </Link>
               ) : (
                 repo.fullName
               )}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
               {repo.description ?? 'No description.'}
             </Typography>
           </Box>
@@ -167,7 +182,9 @@ export function RepoCard({
               <LaunchIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title={refreshDisabled ? (refreshDisabledReason ?? 'Refresh unavailable') : 'Refresh'}>
+          <Tooltip
+            title={refreshDisabled ? (refreshDisabledReason ?? 'Refresh unavailable') : 'Refresh'}
+          >
             {refreshButton}
           </Tooltip>
           {onUntrack ? (

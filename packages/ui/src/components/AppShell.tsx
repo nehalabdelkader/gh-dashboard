@@ -28,7 +28,12 @@ export function AppShell({
 }: AppShellProps) {
   return (
     <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
-      <AppBar position="sticky" color="default" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      <AppBar
+        position="sticky"
+        color="default"
+        elevation={0}
+        sx={{ borderBottom: 1, borderColor: 'divider' }}
+      >
         <Toolbar sx={{ gap: 2 }}>
           <Typography variant="h3" component="span" sx={{ flexShrink: 0 }}>
             {title}

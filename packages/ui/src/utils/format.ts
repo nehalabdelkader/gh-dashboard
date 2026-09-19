@@ -69,9 +69,10 @@ export function formatAbsoluteDate(
   if (!iso) return fallback;
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return fallback;
-  return new Intl.DateTimeFormat(options.locale, { dateStyle: 'medium', timeStyle: 'short' }).format(
-    date,
-  );
+  return new Intl.DateTimeFormat(options.locale, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date);
 }
 
 /** `"resets in 12m"` copy for the rate-limit error state. */

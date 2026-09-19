@@ -44,7 +44,16 @@ export function LoadingSkeleton({ variant = 'text', count = 1 }: LoadingSkeleton
 
   return (
     <Box aria-busy="true" aria-live="polite" role="status">
-      <Box component="span" sx={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
+      <Box
+        component="span"
+        sx={{
+          position: 'absolute',
+          width: 1,
+          height: 1,
+          overflow: 'hidden',
+          clip: 'rect(0 0 0 0)',
+        }}
+      >
         Loading…
       </Box>
       {items.map((i) =>

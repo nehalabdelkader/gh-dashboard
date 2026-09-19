@@ -63,16 +63,36 @@ export function RepoListItem({ repo, tracked, onToggleTrack, onOpen, busy }: Rep
         <Typography
           variant="body2"
           color="text.secondary"
-          sx={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+          sx={{
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}
         >
           {repo.description ?? 'No description.'}
         </Typography>
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 0.5 }} flexWrap="wrap" useFlexGap>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <Stack
+          direction="row"
+          spacing={2}
+          alignItems="center"
+          sx={{ mt: 0.5 }}
+          flexWrap="wrap"
+          useFlexGap
+        >
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+          >
             <StarBorderIcon fontSize="inherit" />
             {formatCompactNumber(repo.stats.stars)}
           </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+          >
             <ErrorOutlineIcon fontSize="inherit" />
             {formatCompactNumber(repo.stats.openIssues)}
           </Typography>

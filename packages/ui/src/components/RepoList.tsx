@@ -35,7 +35,12 @@ export function RepoList({
   busyIds,
 }: RepoListProps) {
   if (error) {
-    return <ErrorState error={error} onRetry={error.kind === 'generic' || error.kind === 'network' ? onRetry : undefined} />;
+    return (
+      <ErrorState
+        error={error}
+        onRetry={error.kind === 'generic' || error.kind === 'network' ? onRetry : undefined}
+      />
+    );
   }
 
   if (loading && items.length === 0) {
@@ -44,7 +49,11 @@ export function RepoList({
 
   if (items.length === 0) {
     return (
-      <>{emptyState ?? <EmptyState title="No repositories found" description="Try a different search term." />}</>
+      <>
+        {emptyState ?? (
+          <EmptyState title="No repositories found" description="Try a different search term." />
+        )}
+      </>
     );
   }
 
