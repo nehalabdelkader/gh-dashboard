@@ -15,13 +15,21 @@
     "test": "turbo run test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "clean": "turbo run clean && rm -rf node_modules"
+    "clean": "turbo run clean && rm -rf node_modules",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@gh/config": "workspace:*",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1",
     "prettier": "^3.4.2",
     "turbo": "^2.3.3",
     "typescript": "^5.7.2"
   },
-  "prettier": "@gh/config/prettier"
+  "prettier": "@gh/config/prettier",
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,md,yaml,yml,css,html}": [
+      "prettier --write"
+    ]
+  }
 }

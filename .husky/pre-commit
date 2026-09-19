@@ -1,0 +1,9 @@
+# Formatting first: lint-staged rewrites only the staged files, then re-stages them.
+pnpm exec lint-staged
+
+# Correctness second, repo-wide. Turborepo caches both tasks on content hash, so an
+# unchanged package is skipped and a repeat commit costs a couple of seconds.
+#
+# Not scoped to staged files on purpose: a type error is rarely in the file you edited —
+# changing an exported signature breaks its callers, and those are not staged.
+pnpm turbo run lint typecheck

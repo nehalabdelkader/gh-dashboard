@@ -30,6 +30,31 @@ satisfy them structurally.
 Storybook is deliberately not installed — the components are verified through `apps/web`
 from Phase 4 onward.
 
+### Data layer (`apps/web/src/store`)
+
+Server state and client state are separated.
+
+- **`githubApi`** (RTK Query) owns everything fetched from GitHub. Its cache is keyed
+  **per argument**, so `getRepo({owner,name})` has its own `isFetching`, `error` and
+  `data`. That is the "independent loading and error states per repo" requirement,
+  implemented by the library instead of a hand-rolled `Record<repoId, LoadingState>`.
+- **`tracked` / `settings`** are client state, persisted to `localStorage` under versioned
+  keys (`gh-dash:tracked:v1`).
+- **`rateLimit`** is observed state, written by the baseQuery from the `x-ratelimit-*`
+  headers on every response — the quota chip costs no request of its own.
+
+The custom `baseQuery` is the single place `@gh/github-api` meets Redux. It flattens the
+client's error classes into a serializable `ApiError` (a Redux store may only hold plain
+data, and `instanceof` survives neither the store nor DevTools), records quota, and bails
+out of the `retry` wrapper for anything a second attempt cannot fix — retrying a 404 or a
+spent quota only burns the remaining 60/hr.
+
+Persistence is a listener middleware, not a reducer side effect: reducers stay pure. It
+matches only the two persisted slices (RTK Query dispatches dozens of actions per search,
+and `setItem` is synchronous) and debounces 300ms. `loadPersisted()` validates before
+feeding `preloadedState`, dropping individual malformed entries rather than the whole
+list — bad data that crashes boot would reload with the page and brick the app.
+
 ### Dependency direction (one-way)
 
 ```
