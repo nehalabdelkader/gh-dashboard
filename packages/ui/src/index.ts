@@ -18,7 +18,7 @@ export type { ConfirmDialogProps } from './components/ConfirmDialog.js';
 export { EmptyState } from './components/EmptyState.js';
 export type { EmptyStateProps } from './components/EmptyState.js';
 export { ErrorState } from './components/ErrorState.js';
-export type { ErrorStateProps } from './components/ErrorState.js';
+export type { ErrorSeverity, ErrorStateProps } from './components/ErrorState.js';
 export { LoadingSkeleton } from './components/LoadingSkeleton.js';
 export type { LoadingSkeletonProps } from './components/LoadingSkeleton.js';
 export { RepoCard } from './components/RepoCard.js';
@@ -41,11 +41,7 @@ export {
   formatRelativeTime,
 } from './utils/format.js';
 
-export type {
-  ErrorKind,
-  RepoCardRepo,
-  RepoCardStats,
-  RepoStatus,
-  ThemeMode,
-  UiError,
-} from './types.js';
+export type { RepoCardRepo, RepoCardStats, RepoStatus, ThemeMode } from './types.js';
+
+export * from './primitives.js';
+export * from './icons.js';
