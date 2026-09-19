@@ -91,6 +91,21 @@ importers:
         specifier: ^8.18.2
         version: 8.70.0(eslint@9.39.5)(typescript@5.9.3)
 
+  packages/github-api:
+    devDependencies:
+      '@gh/config':
+        specifier: workspace:*
+        version: link:../config
+      '@octokit/openapi-types':
+        specifier: ^25.1.0
+        version: 25.1.0
+      eslint:
+        specifier: ^9.17.0
+        version: 9.39.5
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
 packages:
 
   '@adobe/css-tools@4.5.0':
@@ -449,6 +464,9 @@ packages:
     engines: {node: ^22.20 || ^24.12 || >=25}
     cpu: [x64]
     os: [linux]
+
+  '@octokit/openapi-types@25.1.0':
+    resolution: {integrity: sha512-idsIggNXUKkk0+BExUn1dQ92sfysJrje03Q0bv0e+KPLrvyqZF8MnBpFz8UNfYDwB3Ie7Z0TByjWfzxt7vseaA==}
 
   '@rolldown/pluginutils@1.0.0-beta.27':
     resolution: {integrity: sha512-+d0F4MKMCbeVUJwG96uQ4SgAznZNSq93I3V+9NHA4OpvqG8mRCpGdKmK8l/dl02h2CCDHwW2FqilnTyDcAnqjA==}
@@ -1958,6 +1976,8 @@ snapshots:
 
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     optional: true
+
+  '@octokit/openapi-types@25.1.0': {}
 
   '@rolldown/pluginutils@1.0.0-beta.27': {}
 
