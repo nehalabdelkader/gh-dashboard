@@ -41,7 +41,14 @@ export function RepoList({
   }
 
   if (loading && items.length === 0) {
-    return <LoadingSkeleton variant="list-row" count={5} />;
+    // Footer stays mounted: it carries the pagination controls, and yanking them out from
+    // under the cursor on every page change is worse than showing them momentarily disabled.
+    return (
+      <>
+        <LoadingSkeleton variant="list-row" count={5} />
+        {footer}
+      </>
+    );
   }
 
   if (items.length === 0) {

@@ -51,6 +51,11 @@ export function SearchField({
       disabled={disabled ?? false}
       fullWidth={fullWidth}
       autoComplete="off"
+      // type="search" makes WebKit draw its own clear button next to ours.
+      sx={{
+        '& input[type="search"]::-webkit-search-cancel-button': { display: 'none' },
+        '& input[type="search"]::-webkit-search-decoration': { display: 'none' },
+      }}
       slotProps={{
         input: {
           startAdornment: (
