@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
 import {
   Button,
@@ -14,23 +14,29 @@ import { useDebouncedValue } from '@/hooks/useDebouncedValue.js';
 import { usePagination } from '@/hooks/usePagination.js';
 import { useSearchReposQuery } from '@/store/api/githubApi.js';
 import { toErrorDisplay, toErrorStateProps } from '@/store/api/errorCopy.js';
+import { useAppSelector, useAppDispatch } from '@/store/hooks.js';
+import { trackRepo, untrackRepo } from '@/store/tracked/trackedSlice.js';
 
-/** Below this, searching is noise — and search has its own 10 req/min bucket to protect. */
+/** Below this, results are noise — and search has its own 10 req/min bucket to protect. */
 export const MIN_QUERY_LENGTH = 2;
 
 export function SearchPage() {
+  // --- state ---
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebouncedValue(query, 400);
   const { page, perPage, next, previous, reset, canPrevious } = usePagination({ perPage: 20 });
 
+  // --- store ---
+  const dispatch = useAppDispatch();
+  const trackedEntities = useAppSelector((state) => state.tracked.entities);
+
+  // --- query ---
   const trimmed = debouncedQuery.trim();
   const isSearchable = trimmed.length >= MIN_QUERY_LENGTH;
 
-  // `skipToken` rather than `{ skip }`: it makes "there is no argument yet" a type, so a
-  // one-character query cannot accidentally become a request, and `data` stays `undefined`
-  // in a way TypeScript enforces.
-  // `currentData` rather than `data`: `data` is the last result for *any* arg, so it keeps
-  // page 1's rows while page 2 is in flight — which is exactly what suppresses the skeleton.
+  // `skipToken` makes "no query yet" a type, so a one-char query can't become a request.
+  // `currentData` (not `data`) is scoped to the current arg, so page 2 shows a skeleton
+  // instead of page 1's rows.
   const {
     currentData: data,
     error,
@@ -38,17 +44,48 @@ export function SearchPage() {
     refetch,
   } = useSearchReposQuery(isSearchable ? { q: trimmed, page, perPage } : skipToken);
 
-  // Reset on the *input* change, not in an effect on `trimmed`: an effect would fire after
-  // the debounce, one render late, and page 4 of the new query would already be in flight.
+  // --- derived ---
+  const display = toErrorDisplay(error);
+
+  // Rows come back as `RepoCardRepo`, which has no `defaultBranch` — tracking needs it.
+  // Look the full `RepoSummary` back up here instead of widening the `@gh/ui` props.
+  const byId = useMemo(() => new Map((data?.items ?? []).map((repo) => [repo.id, repo])), [data]);
+
+  // --- handlers ---
+  // Reset here, not in an effect on `trimmed`: an effect fires after the debounce, one
+  // render late, and page 4 of the new query is already in flight.
   const handleQueryChange = (value: string) => {
     setQuery(value);
     reset();
   };
 
-  const items: readonly RepoCardRepo[] = data?.items ?? [];
-  const display = toErrorDisplay(error);
-  const isTracked = (_repo: RepoCardRepo) => false;
-  const onToggleTrack = (_repo: RepoCardRepo) => {};
+  const isTracked = (row: RepoCardRepo) => row.id in trackedEntities;
+
+  const onToggleTrack = (row: RepoCardRepo) => {
+    if (row.id in trackedEntities) {
+      dispatch(untrackRepo(row.id));
+      return;
+    }
+    const repo = byId.get(row.id);
+    if (!repo) return;
+    dispatch(
+      trackRepo({
+        owner: repo.owner,
+        name: repo.name,
+        fullName: repo.fullName,
+        description: repo.description,
+        htmlUrl: repo.htmlUrl,
+        defaultBranch: repo.defaultBranch,
+        // Stars and issues came free with the search, so the tracked page can paint them
+        // immediately. Commit date is skipped — it costs a request per repo.
+        snapshot: {
+          stats: repo.stats,
+          lastCommitAt: undefined,
+          fetchedAt: new Date().toISOString(),
+        },
+      }),
+    );
+  };
 
   return (
     <Stack spacing={3}>
@@ -72,7 +109,7 @@ export function SearchPage() {
       {isSearchable ? (
         <>
           <RepoList
-            items={items}
+            items={data?.items ?? []}
             isTracked={isTracked}
             onToggleTrack={onToggleTrack}
             loading={isFetching}
@@ -99,8 +136,8 @@ export function SearchPage() {
               >
                 Previous
               </Button>
-              {/* Gated on `hasMore`, never on `totalCount`: GitHub caps search at 1000
-                    results and 422s past it, and the client already folds that cap in. */}
+              {/* `hasMore`, never `totalCount`: GitHub caps search at 1000 results and
+                  422s past it. The client already folds that cap in. */}
               <Button
                 size="small"
                 onClick={next}
