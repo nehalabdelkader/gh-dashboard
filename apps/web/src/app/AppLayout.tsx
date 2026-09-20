@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { AppShell, Button, ThemeToggle } from '@gh/ui';
+import { AppShell, Button, Stack, ThemeToggle } from '@gh/ui';
+import { RateLimitChip } from '../features/rate-limit/RateLimitChip.js';
 import { useAppDispatch, useAppSelector } from '../store/hooks.js';
 import { selectThemeMode, themeModeChanged } from '../store/settings/settingsSlice.js';
 import { ROUTES } from './routes.js';
@@ -10,8 +11,9 @@ import { ROUTES } from './routes.js';
  * `@gh/ui` knows nothing about routing — it forbids importing a router — so the router
  * vocabulary stays here and meets the design system on `component={NavLink}`. The active
  * style keys off the `.active` class `NavLink` sets, so nothing has to mirror the current
- * route in state. The rate-limit chip joins the theme toggle in `actions` once requests
- * are being made.
+ * route in state. The rate-limit chip sits in `actions` next to the theme
+ * toggle: it is global state (the 60/hr budget is spent by every route) so it is mounted
+ * once here rather than per page.
  */
 export function AppLayout() {
   const dispatch = useAppDispatch();
@@ -33,7 +35,10 @@ export function AppLayout() {
         </Button>
       }
       actions={
-        <ThemeToggle mode={themeMode} onChange={(mode) => dispatch(themeModeChanged(mode))} />
+        <Stack direction="row" spacing={1} alignItems="center">
+          <RateLimitChip />
+          <ThemeToggle mode={themeMode} onChange={(mode) => dispatch(themeModeChanged(mode))} />
+        </Stack>
       }
     >
       <Outlet />
