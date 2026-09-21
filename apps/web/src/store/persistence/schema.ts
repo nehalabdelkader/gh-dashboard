@@ -9,7 +9,7 @@
  *
  * Hand-written rather than a schema library — two shapes do not earn the dependency.
  */
-import type { RepoSnapshot, TrackedRepo } from '@gh/github-api';
+import type { TrackedRepo } from '@gh/github-api';
 import { initialTrackedState, type TrackedState } from '../tracked/trackedSlice.js';
 import {
   initialSettingsState,
@@ -21,15 +21,23 @@ import {
  * Bump when a stored shape changes incompatibly.
  *
  * The version is part of the key, so a bump **discards** rather than migrates: the new
- * build reads a key that does not exist yet and the user starts fresh. Deliberate — a
- * tracked list is a handful of repos and re-adding them costs nothing, which is not worth
- * carrying a migration path (and its own bugs) for every future shape change.
+ * build reads a key that does not exist yet and the user starts fresh. Deliberate — most
+ * stored shapes are caches of something re-fetchable, and a migration path per version is
+ * its own source of bugs.
  *
  * The old blob is orphaned under the old key rather than deleted. Harmless, and it means
  * a rolled-back deploy finds its data intact.
+ *
+ * v2 is the documented exception, in {@link parseLegacyTrackedState}: the tracked list is
+ * now the *only* thing this app cannot re-fetch, and a v1 entry already contains the three
+ * fields a v2 entry needs. Discarding it would delete the user's list on deploy day.
  */
-export const TRACKED_SCHEMA_VERSION = 1;
+export const TRACKED_SCHEMA_VERSION = 2;
 export const SETTINGS_SCHEMA_VERSION = 1;
+
+/** v1 held a full repo copy per entry. Read once, at boot, to salvage the ids. */
+export const LEGACY_TRACKED_KEY = 'gh-dash:tracked:v1';
+export const LEGACY_TRACKED_SCHEMA_VERSION = 1;
 
 export const TRACKED_KEY = `gh-dash:tracked:v${TRACKED_SCHEMA_VERSION}`;
 export const SETTINGS_KEY = `gh-dash:settings:v${SETTINGS_SCHEMA_VERSION}`;
@@ -54,36 +62,20 @@ function isString(value: unknown): value is string {
   return typeof value === 'string';
 }
 
-function optionalString(value: unknown): value is string | undefined {
-  return value === undefined || typeof value === 'string';
-}
-
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
-function isSnapshot(value: unknown): value is RepoSnapshot {
-  if (!isRecord(value)) return false;
-  const stats = value['stats'];
-  if (!isRecord(stats)) return false;
-  return (
-    isFiniteNumber(stats['stars']) &&
-    isFiniteNumber(stats['openIssues']) &&
-    isFiniteNumber(stats['forks']) &&
-    isFiniteNumber(stats['watchers']) &&
-    isString(value['fetchedAt']) &&
-    optionalString(value['lastCommitAt'])
-  );
-}
-
+/**
+ * Three string fields, and that is the whole record now.
+ *
+ * A v1 entry carried stats, a description and a default branch too. Those are server state
+ * and live in the query cache; validating them here was validating a copy that was already
+ * wrong by the time it was read back.
+ */
 function isTrackedRepo(value: unknown): value is TrackedRepo {
   if (!isRecord(value)) return false;
-  if (!isString(value['id']) || !isString(value['owner']) || !isString(value['name'])) return false;
-  if (!isString(value['fullName']) || !isString(value['htmlUrl'])) return false;
-  if (!isString(value['defaultBranch']) || !isString(value['trackedAt'])) return false;
-  if (!optionalString(value['description'])) return false;
-  const snapshot = value['snapshot'];
-  return snapshot === undefined || isSnapshot(snapshot);
+  return isString(value['id']) && isString(value['owner']) && isString(value['name']);
 }
 
 /**
@@ -107,6 +99,32 @@ export function parseTrackedState(value: unknown): TrackedState | undefined {
     result.entities[id] = entity;
   }
   return result;
+}
+
+/**
+ * Salvages the references out of a v1 blob.
+ *
+ * Every v1 entry carried `id`, `owner` and `name` alongside the stats — so the migration is
+ * a projection, not a transform: drop everything that is server state and keep the three
+ * fields that identify the repo. Anything malformed is skipped, same rule as above.
+ */
+export function parseLegacyTrackedState(value: unknown): TrackedState | undefined {
+  if (!isRecord(value)) return undefined;
+  const { ids, entities } = value;
+  if (!Array.isArray(ids) || !isRecord(entities)) return undefined;
+
+  const result: TrackedState = { ids: [], entities: {} };
+  for (const id of ids) {
+    if (!isString(id)) continue;
+    const entity = entities[id];
+    if (!isRecord(entity)) continue;
+    const owner = entity['owner'];
+    const name = entity['name'];
+    if (!isString(owner) || !isString(name) || entity['id'] !== id) continue;
+    result.ids.push(id);
+    result.entities[id] = { id, owner, name };
+  }
+  return result.ids.length > 0 ? result : undefined;
 }
 
 const THEME_MODES: readonly ThemeMode[] = ['light', 'dark', 'system'];

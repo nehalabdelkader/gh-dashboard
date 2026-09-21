@@ -6,7 +6,8 @@
  * re-render every card, including the fourteen that did not change.
  */
 import { createSelector } from '@reduxjs/toolkit';
-import type { RepoId, TrackedRepo } from '@gh/github-api';
+import type { RepoDetail, RepoId, TrackedRepo } from '@gh/github-api';
+import { githubApi, repoCacheKey } from '../api/githubApi.js';
 import type { RootState } from '../types.js';
 
 export const selectTrackedState = (state: RootState) => state.tracked;
@@ -28,30 +29,39 @@ export const selectTrackedRepos = createSelector(
 );
 
 /**
+ * The query cache, as an input selector.
+ *
+ * Stars are server state, so this is where they are — the tracked slice holds references
+ * only. Taking the `queries` dictionary as the input keeps the memoization honest: it is a
+ * new object only when a query actually changed, not on every dispatch.
+ */
+const selectQueryCache = (state: RootState) => state[githubApi.reducerPath].queries;
+
+/** A repo's cached detail, or `undefined` if it has not been fetched this session. */
+function cachedDetail(
+  cache: ReturnType<typeof selectQueryCache>,
+  id: RepoId,
+): RepoDetail | undefined {
+  return cache[repoCacheKey(id)]?.data as RepoDetail | undefined;
+}
+
+/**
  * The stars bar chart's data, sorted desc.
  *
  * Deliberately shaped as `{ label, value }` rather than as repos: `@gh/charts` takes no
  * GitHub vocabulary, so the mapping has to happen on this side of the boundary.
+ *
+ * A tracked repo whose stats have not been fetched yet is left out rather than plotted as
+ * zero — a bar at zero reads as "no stars", which is a different claim from "not loaded".
  */
 export const selectStarsChartData = createSelector(
-  [selectTrackedRepos],
-  (repos): Array<{ id: RepoId; label: string; value: number }> =>
+  [selectTrackedRepos, selectQueryCache],
+  (repos, cache): Array<{ id: RepoId; label: string; value: number }> =>
     repos
-      .filter((repo) => repo.snapshot !== undefined)
-      .map((repo) => ({
-        id: repo.id,
-        label: repo.name,
-        value: repo.snapshot?.stats.stars ?? 0,
-      }))
+      .map((repo) => ({ repo, detail: cachedDetail(cache, repo.id) }))
+      .filter(
+        (entry): entry is { repo: TrackedRepo; detail: RepoDetail } => entry.detail !== undefined,
+      )
+      .map(({ repo, detail }) => ({ id: repo.id, label: repo.name, value: detail.stats.stars }))
       .sort((a, b) => b.value - a.value),
 );
-
-/** Repos whose snapshot is missing or older than `maxAgeMs` — the refresh-all worklist. */
-export const makeSelectStaleTracked = (maxAgeMs: number) =>
-  createSelector([selectTrackedRepos, (_state: RootState, now: number) => now], (repos, now) =>
-    repos.filter((repo) => {
-      if (!repo.snapshot) return true;
-      const fetchedAt = new Date(repo.snapshot.fetchedAt).getTime();
-      return Number.isNaN(fetchedAt) || now - fetchedAt > maxAgeMs;
-    }),
-  );
