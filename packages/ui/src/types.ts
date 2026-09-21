@@ -9,8 +9,8 @@
 
 /**
  * What a card is currently doing. This one prop drives every per-entity visual:
- * `loading` is a first fetch (skeleton), `refreshing` is a revalidation (spinner, stale
- * values still on screen), `error` shows the inline strip.
+ * `loading` is a first fetch and `refreshing` a revalidation; both render the skeleton,
+ * `error` shows the inline strip.
  */
 export type RepoStatus = 'idle' | 'loading' | 'refreshing' | 'error';
 
@@ -37,6 +37,4 @@ export interface RepoCardRepo {
   stats: RepoCardStats;
   /** ISO-8601 committer date on the default branch. */
   lastCommitAt?: string | undefined;
-  /** ISO-8601 instant the values above were fetched — drives "updated 4m ago". */
-  fetchedAt?: string | undefined;
 }

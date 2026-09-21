@@ -58,9 +58,9 @@ export function RepoCard({
 }: RepoCardProps) {
   const isRefreshing = status === 'refreshing';
 
-  // A first load has nothing to show yet; a refresh keeps the previous values visible and
-  // just dims them, so the card never flashes empty on revalidation.
-  if (status === 'loading') {
+  // A first load has nothing to show yet, and a refresh is treated the same way: while
+  // values are in flight the card shows the skeleton rather than stale numbers.
+  if (status === 'loading' || isRefreshing) {
     return <LoadingSkeleton variant="card" />;
   }
 
@@ -164,12 +164,7 @@ export function RepoCard({
         {error ? <ErrorState onRetry={onRefresh} {...error} variant="inline" /> : null}
       </CardContent>
 
-      <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 1.5, pt: 0 }}>
-        <Typography variant="caption" color="text.secondary">
-          {repo.fetchedAt
-            ? `Updated ${formatRelativeTime(repo.fetchedAt, now === undefined ? {} : { now })}`
-            : 'Never refreshed'}
-        </Typography>
+      <CardActions sx={{ justifyContent: 'end', px: 2, pb: 1.5, pt: 0 }}>
         <Stack direction="row" spacing={0.5}>
           <Tooltip title="Open on GitHub">
             <IconButton
