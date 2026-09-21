@@ -10,7 +10,6 @@ import type {
   Contributor,
   LanguageSlice,
   RepoDetail,
-  RepoSnapshot,
   RepoStats,
   RepoSummary,
   SearchResult,
@@ -141,33 +140,13 @@ export function toWeeklyCommitActivity(dto: GhCommitActivity[]): WeeklyCommitAct
   }));
 }
 
-/** Starts tracking a repo. The snapshot fills in on the first successful fetch. */
-export function toTrackedRepo(
-  repo: RepoSummary,
-  trackedAt: string = new Date().toISOString(),
-): TrackedRepo {
-  return {
-    id: repo.id,
-    owner: repo.owner,
-    name: repo.name,
-    fullName: repo.fullName,
-    description: repo.description,
-    htmlUrl: repo.htmlUrl,
-    defaultBranch: repo.defaultBranch,
-    trackedAt,
-    snapshot: undefined,
-  };
-}
-
-/** What gets persisted after a refresh, so a cold load renders before any request lands. */
-export function toRepoSnapshot(
-  repo: RepoSummary,
-  lastCommitAt: string | undefined,
-  fetchedAt: string = new Date().toISOString(),
-): RepoSnapshot {
-  return {
-    stats: repo.stats,
-    lastCommitAt: lastCommitAt ?? repo.pushedAt,
-    fetchedAt,
-  };
+/**
+ * Starts tracking a repo: keeps the reference, drops the rest.
+ *
+ * The caller usually has a whole `RepoSummary` to hand (a search row). Narrowing it here is
+ * the point — the stats it carries are already in the query cache, and a second copy in
+ * client state would be the one that goes stale.
+ */
+export function toTrackedRepo(repo: RepoSummary): TrackedRepo {
+  return { id: repo.id, owner: repo.owner, name: repo.name };
 }

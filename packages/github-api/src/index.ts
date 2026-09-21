@@ -36,7 +36,6 @@ export {
   toContributor,
   toLanguageSlices,
   toRepoDetail,
-  toRepoSnapshot,
   toRepoStats,
   toRepoSummary,
   toSearchResult,

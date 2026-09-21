@@ -114,29 +114,20 @@ export interface RateLimitSnapshot {
 }
 
 /**
- * A repo the user follows, plus the last known stats.
+ * A repo the user follows — a **reference**, nothing more.
  *
- * The snapshot is what makes the tracked page render instantly from localStorage on a cold
- * load, before any request resolves. Shape is intentionally server-friendly in case sync
- * ever moves behind an API.
+ * Identity only: everything renderable (stars, description, default branch, last commit)
+ * is server state and belongs to the query cache, keyed by these same two fields. Holding
+ * a copy here would mean two sources of truth for one repo, a localStorage blob that grows
+ * with every field GitHub adds, and a persisted `stars: 41200` that silently rots.
+ *
+ * `id` is derived (`toRepoId(owner, name)`) but stored, because it is the key of the
+ * normalized map and of every cache entry that describes this repo.
  */
 export interface TrackedRepo {
   id: RepoId;
   owner: string;
   name: string;
-  fullName: string;
-  description: string | undefined;
-  htmlUrl: string;
-  defaultBranch: string;
-  trackedAt: string;
-  snapshot: RepoSnapshot | undefined;
-}
-
-export interface RepoSnapshot {
-  stats: RepoStats;
-  lastCommitAt: string | undefined;
-  /** ISO-8601 instant this snapshot was written — drives the "updated 4m ago" label. */
-  fetchedAt: string;
 }
 
 /** `owner` + `name` -> `"owner/name"`. The one place the id format is defined. */
