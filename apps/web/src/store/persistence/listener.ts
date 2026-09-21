@@ -7,6 +7,9 @@
  * It matches only the two slices worth persisting. Without that filter it would fire on
  * every RTK Query lifecycle action — dozens per search — and `localStorage.setItem` is
  * synchronous, so each one blocks the main thread while it stringifies the whole list.
+ *
+ * Since the tracked list holds references only, the matching actions are just the three
+ * that change *which* repos are tracked. Refreshing a card writes nothing to disk at all.
  */
 import { createListenerMiddleware, isAnyOf, type TypedStartListening } from '@reduxjs/toolkit';
 import {
@@ -14,13 +17,7 @@ import {
   settingsReplaced,
   themeModeChanged,
 } from '../settings/settingsSlice.js';
-import {
-  snapshotUpdated,
-  trackRepo,
-  trackedRepoUpdated,
-  trackedReplaced,
-  untrackRepo,
-} from '../tracked/trackedSlice.js';
+import { trackRepo, trackedReplaced, untrackRepo } from '../tracked/trackedSlice.js';
 import type { AppDispatch, RootState } from '../types.js';
 import {
   SETTINGS_KEY,
@@ -40,7 +37,7 @@ export function createPersistenceMiddleware(debounceMs: number = WRITE_DEBOUNCE_
   const startListening = listener.startListening as TypedStartListening<RootState, AppDispatch>;
 
   startListening({
-    matcher: isAnyOf(trackRepo, untrackRepo, snapshotUpdated, trackedRepoUpdated, trackedReplaced),
+    matcher: isAnyOf(trackRepo, untrackRepo, trackedReplaced),
     effect: async (_action, api) => {
       // Cancels the *pending* effect from the previous matching action, which is what
       // makes this a debounce rather than N delayed writes.

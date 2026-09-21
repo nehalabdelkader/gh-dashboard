@@ -15,6 +15,7 @@ import type {
   RepoDetail,
   SearchResult,
 } from '@gh/github-api';
+import type { RepoId } from '@gh/github-api';
 import { toRepoId } from '@gh/github-api';
 import { createGhBaseQuery, type GhRequest, type GhResult } from './baseQuery.js';
 import type { ApiError } from './errors.js';
@@ -39,12 +40,24 @@ export interface SearchArg {
 const KEEP_SEARCH = 60;
 const KEEP_REPO = 300;
 
+/**
+ * The `getRepo` cache key.
+ *
+ * Pinned to the repo id rather than left to RTK Query's default arg serialization, because
+ * the tracked list stores *only* references: anything that wants a tracked repo's stats
+ * (the stars chart, say) has to find its cache entry from an id alone. A key spelled here
+ * once is a contract; a key reverse-engineered from `JSON.stringify` order is a bug in
+ * waiting. It reads as `getRepo(facebook/react)` in devtools, too.
+ */
+export const repoCacheKey = (id: RepoId): string => `getRepo(${id})`;
+
 export const githubApi = createApi({
   reducerPath: 'githubApi',
   baseQuery: createGhBaseQuery(),
   tagTypes: ['Repo', 'Commit'],
-  // Cold loads render from the persisted snapshot, so an automatic refetch on every mount
-  // would spend quota re-fetching what is already on screen. Refreshing is explicit here.
+  // Cold loads render from the persisted snapshot, so a refetch on *every* mount would
+  // spend quota re-fetching what is already on screen. A cache entry is fetched once and
+  // then re-fetched only when its tag is invalidated — see `Repo`/`Commit` below.
   refetchOnMountOrArgChange: false,
   refetchOnFocus: false,
   refetchOnReconnect: false,
@@ -60,6 +73,8 @@ export const githubApi = createApi({
 
     getRepo: builder.query<RepoDetail, RepoArg>({
       query: (ref): GhRequest => ({ type: 'getRepo', ref }),
+      serializeQueryArgs: ({ queryArgs }) =>
+        repoCacheKey(toRepoId(queryArgs.owner, queryArgs.name)),
       transformResponse: (response: GhResult) => response as RepoDetail,
       keepUnusedDataFor: KEEP_REPO,
       providesTags: (_result, _error, arg) => [{ type: 'Repo', id: toRepoId(arg.owner, arg.name) }],

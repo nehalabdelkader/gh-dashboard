@@ -3,8 +3,8 @@
  *
  * Unauthenticated the ceiling is 60 core requests an hour, which is the binding constraint
  * on the whole app (plan §1). Keeping it in the store — fed by the headers on every
- * response, not by a dedicated poll — is what lets the header chip, the "Refresh all"
- * gate and the rate-limit error copy all read the same number.
+ * response, not by a dedicated poll — is what lets the header chip and the rate-limit
+ * error copy read the same number.
  */
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { RateLimitInfo, RateLimitSnapshot } from '@gh/github-api';
@@ -76,7 +76,11 @@ export const RATE_LIMIT_SLICE_NAME = rateLimitSlice.name;
 
 /**
  * Whether a burst of `cost` requests fits in what is left, keeping a small reserve so a
- * "Refresh all" can never spend the very last request the UI needs for a retry.
+ * bulk operation can never spend the very last request the UI needs for a retry.
+ *
+ * Unused by "Refresh all" on purpose — that button requests every tracked repo and lets a
+ * spent budget surface as a per-card error. This stays for callers that want to warn
+ * *before* spending.
  */
 export function hasQuotaFor(
   state: RateLimitState,

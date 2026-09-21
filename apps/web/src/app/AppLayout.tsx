@@ -3,6 +3,7 @@ import { AppShell, Button, Stack, ThemeToggle } from '@gh/ui';
 import { RateLimitChip } from '../features/rate-limit/RateLimitChip.js';
 import { useAppDispatch, useAppSelector } from '../store/hooks.js';
 import { selectThemeMode, themeModeChanged } from '../store/settings/settingsSlice.js';
+import { selectTrackedCount } from '../store/tracked/selectors.js';
 import { ROUTES } from './routes.js';
 
 /**
@@ -18,21 +19,34 @@ import { ROUTES } from './routes.js';
 export function AppLayout() {
   const dispatch = useAppDispatch();
   const themeMode = useAppSelector(selectThemeMode);
+  const trackedCount = useAppSelector(selectTrackedCount);
 
   return (
     <AppShell
       title="GitHub Repo Dashboard"
       navigation={
-        <Button
-          component={NavLink}
-          to={ROUTES.search}
-          end
-          color="inherit"
-          size="small"
-          sx={{ '&.active': { bgcolor: 'action.selected', fontWeight: 600 } }}
-        >
-          Search
-        </Button>
+        <Stack direction="row" spacing={1}>
+          <Button
+            component={NavLink}
+            to={ROUTES.search}
+            end
+            color="inherit"
+            size="small"
+            sx={{ '&.active': { bgcolor: 'action.selected', fontWeight: 600 } }}
+          >
+            Search
+          </Button>
+          <Button
+            component={NavLink}
+            to={ROUTES.tracked}
+            color="inherit"
+            size="small"
+            sx={{ '&.active': { bgcolor: 'action.selected', fontWeight: 600 } }}
+          >
+            Tracked
+            {trackedCount > 0 ? ` (${String(trackedCount)})` : ''}
+          </Button>
+        </Stack>
       }
       actions={
         <Stack direction="row" spacing={1} alignItems="center">

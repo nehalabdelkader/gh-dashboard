@@ -68,23 +68,10 @@ export function SearchPage() {
     }
     const repo = byId.get(row.id);
     if (!repo) return;
-    dispatch(
-      trackRepo({
-        owner: repo.owner,
-        name: repo.name,
-        fullName: repo.fullName,
-        description: repo.description,
-        htmlUrl: repo.htmlUrl,
-        defaultBranch: repo.defaultBranch,
-        // Stars and issues came free with the search, so the tracked page can paint them
-        // immediately. Commit date is skipped — it costs a request per repo.
-        snapshot: {
-          stats: repo.stats,
-          lastCommitAt: undefined,
-          fetchedAt: new Date().toISOString(),
-        },
-      }),
-    );
+    // The reference, nothing else. The search row's stats are already in the query cache
+    // and the tracked page reads them from there — copying them into client state would
+    // just create a second, slowly rotting version of the same numbers.
+    dispatch(trackRepo({ owner: repo.owner, name: repo.name }));
   };
 
   return (
