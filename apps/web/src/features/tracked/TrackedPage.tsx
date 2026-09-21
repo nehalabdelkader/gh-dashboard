@@ -111,7 +111,7 @@ export function TrackedPage() {
             <TrackedRepoCard
               repo={repo}
               onUntrack={() => setPendingUntrack(repo.id)}
-              onOpen={() => void navigate(repoDetailPath(repo.owner, repo.name))}
+              href={repoDetailPath(repo.owner, repo.name)}
             />
           </li>
         ))}

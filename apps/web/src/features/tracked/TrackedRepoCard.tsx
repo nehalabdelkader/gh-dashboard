@@ -1,3 +1,4 @@
+import { Link as RouterLink } from 'react-router-dom';
 import { RepoCard } from '@gh/ui';
 import type { TrackedRepo } from '@gh/github-api';
 import { useGetLastCommitQuery, useGetRepoQuery } from '@/store/api/githubApi.js';
@@ -7,7 +8,8 @@ import { toRepoCardRepo } from './toRepoCardRepo.js';
 export interface TrackedRepoCardProps {
   repo: TrackedRepo;
   onUntrack: () => void;
-  onOpen: () => void;
+  /** The detail route for this repo. The card renders it as a real anchor. */
+  href: string;
 }
 
 /**
@@ -22,7 +24,7 @@ export interface TrackedRepoCardProps {
  * "Refresh all" invalidates the tags and RTK Query re-runs exactly the subscriptions these
  * hooks hold; the card's own button refetches just its two.
  */
-export function TrackedRepoCard({ repo, onUntrack, onOpen }: TrackedRepoCardProps) {
+export function TrackedRepoCard({ repo, onUntrack, href }: TrackedRepoCardProps) {
   const repoQuery = useGetRepoQuery({ owner: repo.owner, name: repo.name });
   // No `ref`: the tracked entry no longer carries a default branch, and GitHub's own
   // default is the right answer anyway — one less field to keep in sync with upstream.
@@ -55,7 +57,10 @@ export function TrackedRepoCard({ repo, onUntrack, onOpen }: TrackedRepoCardProp
       error={display ? toErrorStateProps(display, onRefresh) : undefined}
       onRefresh={onRefresh}
       onUntrack={onUntrack}
-      onOpen={onOpen}
+      href={href}
+      // The router's `Link`, so navigation stays client-side; `@gh/ui` forbids importing
+      // a router, so the component comes from this side of the boundary.
+      linkComponent={RouterLink}
     />
   );
 }

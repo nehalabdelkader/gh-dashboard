@@ -1,7 +1,6 @@
 import CallSplitIcon from '@mui/icons-material/CallSplit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import LaunchIcon from '@mui/icons-material/Launch';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import Avatar from '@mui/material/Avatar';
@@ -16,6 +15,7 @@ import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import type { ElementType } from 'react';
 import type { RepoCardRepo, RepoStatus } from '../types.js';
 import { formatAbsoluteDate, formatCompactNumber, formatRelativeTime } from '../utils/format.js';
 import { ErrorState, type ErrorStateProps } from './ErrorState.js';
@@ -30,8 +30,20 @@ export interface RepoCardProps {
   error?: ErrorStateProps | undefined;
   onRefresh?: (() => void) | undefined;
   onUntrack?: (() => void) | undefined;
-  /** Navigate to the detail page. The card emits; the app decides what that means. */
-  onOpen?: (() => void) | undefined;
+  /**
+   * Where the card points. Given, the whole card is a link to it.
+   *
+   * A URL rather than an `onOpen` callback: navigation is what an anchor is for, and an
+   * anchor is what gives middle-click, cmd-click, "copy link address" and a status-bar
+   * preview. A callback would have to reimplement all four, badly.
+   */
+  href?: string | undefined;
+  /**
+   * The router's link component — react-router's `Link`, say. It receives `to`.
+   * Omitted, the card renders a plain `<a href>`, which is what keeps this package
+   * free of a router dependency.
+   */
+  linkComponent?: ElementType | undefined;
   /** Set while the quota is too low to be worth spending. */
   refreshDisabled?: boolean | undefined;
   refreshDisabledReason?: string | undefined;
@@ -51,7 +63,8 @@ export function RepoCard({
   error,
   onRefresh,
   onUntrack,
-  onOpen,
+  href,
+  linkComponent,
   refreshDisabled,
   refreshDisabledReason,
   now,
@@ -79,7 +92,21 @@ export function RepoCard({
   );
 
   return (
-    <Card aria-busy={isRefreshing}>
+    <Card
+      aria-busy={isRefreshing}
+      sx={
+        href !== undefined
+          ? {
+              position: 'relative',
+              transition: 'border-color 150ms',
+              '&:hover': { borderColor: 'primary.main' },
+              // The whole card reacts, but only the title is focusable — see the
+              // stretched hit area below.
+              '&:has(:focus-visible)': { borderColor: 'primary.main' },
+            }
+          : undefined
+      }
+    >
       <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         <Stack direction="row" spacing={1.5} alignItems="flex-start">
           <Avatar
@@ -90,18 +117,29 @@ export function RepoCard({
           />
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography variant="h3" component="h2" noWrap title={repo.fullName}>
-              {onOpen ? (
+              {href === undefined ? (
+                repo.fullName
+              ) : (
                 <Link
-                  component="button"
-                  type="button"
-                  onClick={onOpen}
+                  {...(linkComponent ? { component: linkComponent, to: href } : { href })}
                   color="inherit"
-                  sx={{ textAlign: 'left' }}
+                  sx={{
+                    textAlign: 'left',
+                    // The card is one big click target, but this anchor is the only
+                    // focusable thing in it: its hit area is stretched over the whole
+                    // card with a pseudo-element. Wrapping the card in the anchor
+                    // instead would nest the refresh and untrack buttons inside a link —
+                    // invalid HTML, and unusable with a screen reader.
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      inset: 0,
+                      cursor: 'pointer',
+                    },
+                  }}
                 >
                   {repo.fullName}
                 </Link>
-              ) : (
-                repo.fullName
               )}
             </Typography>
             <Typography
@@ -160,24 +198,22 @@ export function RepoCard({
           />
         </Stack>
 
-        {/* `onRetry` first so a caller that supplies its own still wins. */}
-        {error ? <ErrorState onRetry={onRefresh} {...error} variant="inline" /> : null}
+        {/* Above the stretched hit area, so its retry button is clickable rather than
+            swallowed by the card's own click target. */}
+        {error ? (
+          <Box sx={{ position: 'relative', zIndex: 1 }}>
+            {/* `onRetry` first so a caller that supplies its own still wins. */}
+            <ErrorState onRetry={onRefresh} {...error} variant="inline" />
+          </Box>
+        ) : null}
       </CardContent>
 
-      <CardActions sx={{ justifyContent: 'end', px: 2, pb: 1.5, pt: 0 }}>
+      {/* Same: the action row sits above the card's hit area, so Refresh and Untrack
+          stay their own buttons instead of navigating. */}
+      <CardActions
+        sx={{ justifyContent: 'end', px: 2, pb: 1.5, pt: 0, position: 'relative', zIndex: 1 }}
+      >
         <Stack direction="row" spacing={0.5}>
-          <Tooltip title="Open on GitHub">
-            <IconButton
-              size="small"
-              component="a"
-              href={repo.htmlUrl}
-              target="_blank"
-              rel="noreferrer noopener"
-              aria-label={`Open ${repo.fullName} on GitHub`}
-            >
-              <LaunchIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
           <Tooltip
             title={refreshDisabled ? (refreshDisabledReason ?? 'Refresh unavailable') : 'Refresh'}
           >

@@ -34,18 +34,24 @@ export function RepoListItem({ repo, tracked, onToggleTrack, onOpen, busy }: Rep
       divider
       alignItems="flex-start"
       secondaryAction={
+        // Same button as the detail page's, down to the colour pair: tracking a repo
+        // should look and read identically wherever it is offered. The label names the
+        // action rather than the state ("Untrack", not "Tracked"), so there is no
+        // `aria-pressed` — a toggle announces its state through one or the other, and
+        // both at once contradict each other.
         <Button
           variant={tracked ? 'outlined' : 'contained'}
-          color={tracked ? 'inherit' : 'primary'}
-          size="small"
+          color={tracked ? 'error' : 'primary'}
+          startIcon={<StarBorderIcon />}
           disabled={busy ?? false}
           onClick={() => onToggleTrack(repo)}
-          aria-pressed={tracked}
         >
-          {tracked ? 'Tracked' : 'Track'}
+          {tracked ? 'Untrack' : 'Track'}
         </Button>
       }
-      sx={{ pr: 14 }}
+      // Room for the widest label the button can hold, so a long repo name never runs
+      // under it.
+      sx={{ pr: 17 }}
     >
       <ListItemAvatar>
         <Avatar src={repo.ownerAvatarUrl} alt="" variant="rounded" />
