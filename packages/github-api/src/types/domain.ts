@@ -93,12 +93,6 @@ export interface Contributor {
   htmlUrl: string;
 }
 
-export interface WeeklyCommitActivity {
-  /** ISO-8601 start of the week (GitHub returns a unix timestamp). */
-  weekStart: string;
-  total: number;
-}
-
 /** One rate-limit bucket, parsed from response headers or `GET /rate_limit`. */
 export interface RateLimitInfo {
   limit: number;

@@ -14,11 +14,9 @@ import type {
   RepoSummary,
   SearchResult,
   TrackedRepo,
-  WeeklyCommitActivity,
 } from './types/domain.js';
 import type {
   GhCommit,
-  GhCommitActivity,
   GhContributor,
   GhFullRepo,
   GhLanguages,
@@ -131,13 +129,6 @@ export function toContributor(dto: GhContributor): Contributor {
     avatarUrl: dto.avatar_url ?? '',
     htmlUrl: dto.html_url ?? '',
   };
-}
-
-export function toWeeklyCommitActivity(dto: GhCommitActivity[]): WeeklyCommitActivity[] {
-  return dto.map((week) => ({
-    weekStart: new Date(week.week * 1000).toISOString(),
-    total: week.total,
-  }));
 }
 
 /**

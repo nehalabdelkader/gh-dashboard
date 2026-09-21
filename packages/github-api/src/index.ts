@@ -40,7 +40,6 @@ export {
   toRepoSummary,
   toSearchResult,
   toTrackedRepo,
-  toWeeklyCommitActivity,
 } from './mappers.js';
 
 export { parseRepoId, toRepoId } from './types/domain.js';

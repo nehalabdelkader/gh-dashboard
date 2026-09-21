@@ -21,7 +21,6 @@ import {
   toLanguageSlices,
   toRepoDetail,
   toSearchResult,
-  toWeeklyCommitActivity,
 } from './mappers.js';
 import { toRateLimitSnapshot } from './rate-limit.js';
 import type {
@@ -31,11 +30,9 @@ import type {
   RateLimitSnapshot,
   RepoDetail,
   SearchResult,
-  WeeklyCommitActivity,
 } from './types/domain.js';
 import type {
   GhCommit,
-  GhCommitActivity,
   GhContributor,
   GhFullRepo,
   GhLanguages,
@@ -79,11 +76,6 @@ export interface GitHubClient {
     ref: RepoRef & { limit?: number | undefined },
     options?: RequestOptions,
   ): Promise<GhResponse<Contributor[]>>;
-  /** `undefined` data while GitHub is still computing stats (a `202` with an empty body). */
-  getCommitActivity(
-    ref: RepoRef,
-    options?: RequestOptions,
-  ): Promise<GhResponse<WeeklyCommitActivity[] | undefined>>;
   getRateLimit(options?: RequestOptions): Promise<GhResponse<RateLimitSnapshot>>;
 }
 
@@ -165,23 +157,6 @@ export function createGitHubClient(options: GitHubClientOptions = {}): GitHubCli
         requestOptions,
       );
       return { data: response.data.map(toContributor), meta: response.meta };
-    },
-
-    async getCommitActivity(ref, requestOptions) {
-      const response = await request<GhCommitActivity[] | undefined>(
-        config,
-        {
-          path: `/repos/${encode(ref.owner)}/${encode(ref.name)}/stats/commit_activity`,
-          // GitHub answers 202 with an empty body while it computes the stats. That is a
-          // "come back shortly", not a failure — the caller retries after a delay.
-          accept202: true,
-        },
-        requestOptions,
-      );
-      return {
-        data: response.data ? toWeeklyCommitActivity(response.data) : undefined,
-        meta: response.meta,
-      };
     },
 
     async getRateLimit(requestOptions) {

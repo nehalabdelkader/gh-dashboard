@@ -52,8 +52,6 @@ export interface HttpClientConfig {
 export interface RequestSpec {
   path: string;
   query?: Record<string, string | number | undefined> | undefined;
-  /** `202` is a real answer for the stats endpoints; the caller decides what it means. */
-  accept202?: boolean | undefined;
 }
 
 export function buildUrl(
@@ -166,10 +164,6 @@ export async function request<T>(
     rateLimit: parseRateLimitHeaders(response.headers),
     rateLimitResource: rateLimitResourceOf(response.headers),
   };
-
-  if (response.status === 202 && spec.accept202) {
-    return { data: undefined as T, meta };
-  }
 
   if (!response.ok) throw await toTypedError(response, url);
 

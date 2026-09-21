@@ -13,7 +13,6 @@ export type GhRepoSearchResultItem = components['schemas']['repo-search-result-i
 export type GhCommit = components['schemas']['commit'];
 export type GhContributor = components['schemas']['contributor'];
 export type GhLanguages = components['schemas']['language'];
-export type GhCommitActivity = components['schemas']['commit-activity'];
 export type GhRateLimitOverview = components['schemas']['rate-limit-overview'];
 
 /** `GET /search/repositories` — the spec inlines this response, so it is spelled out here. */
