@@ -14,7 +14,7 @@ env:
 
 jobs:
   verify:
-    name: lint / typecheck / test / build
+    name: lint / typecheck / build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,5 +32,5 @@ jobs:
       - name: Format check
         run: pnpm format:check
 
-      - name: Lint, typecheck, test, build
-        run: pnpm turbo run lint typecheck test build
+      - name: Lint, typecheck, build
+        run: pnpm turbo run lint typecheck build

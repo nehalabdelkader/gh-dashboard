@@ -26,8 +26,7 @@ state. Prop shapes (`RepoCardRepo`, `UiError`) are declared locally rather than 
 from `@gh/github-api`: packages never depend on each other, and the domain types happen to
 satisfy them structurally.
 
-Storybook is deliberately not installed — the components are verified through `apps/web`
-from Phase 4 onward.
+Storybook is deliberately not installed — the components are verified through `apps/web`.
 
 `useThemeTokens()` flattens the theme to plain values (colours, font, radius). It exists
 for consumers that are not MUI consumers — see `@gh/charts` below.
@@ -49,7 +48,7 @@ navigates to the repo's detail page.
 Accessibility: the plot is one `role="img"` node with a generated `aria-label`, and the
 same numbers are emitted as a visually-hidden table. When bars are clickable its labels
 are buttons, which is the keyboard path to what a click does — an SVG rect is not
-focusable. It is also what the tests assert on, since jsdom has no layout.
+focusable.
 
 The stars chart costs no request: it reads the RTK Query cache the cards already fill, so
 a refresh moves the bars for free.
@@ -115,7 +114,7 @@ declared to make such an import work.
 
 ```bash
 pnpm install
-pnpm turbo run lint typecheck test build   # everything, cached
+pnpm turbo run lint typecheck build        # everything, cached
 pnpm --filter web dev                      # app on http://localhost:5173
 ```
 

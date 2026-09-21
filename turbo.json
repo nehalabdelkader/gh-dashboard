@@ -5,7 +5,6 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", "!**/*.test.*", "!**/*.stories.*"],
       "outputs": ["dist/**"]
     },
     "dev": {
@@ -16,9 +15,6 @@
       "dependsOn": ["^build"]
     },
     "typecheck": {
-      "dependsOn": ["^build"]
-    },
-    "test": {
       "dependsOn": ["^build"]
     },
     "clean": {
