@@ -10,9 +10,8 @@ apps/web              Vite + React 19 SPA — the only deployable
 packages/config       @gh/config     — shared tsconfig / eslint / prettier bases
 packages/github-api   @gh/github-api — GitHub REST client + domain types (no React, no Redux)
 packages/ui           @gh/ui         — MUI design system, presentational only
+packages/charts       @gh/charts     — Recharts wrappers, MUI-free
 ```
-
-Packages arriving in later phases: `@gh/charts`.
 
 ### `@gh/ui`
 
@@ -29,6 +28,31 @@ satisfy them structurally.
 
 Storybook is deliberately not installed — the components are verified through `apps/web`
 from Phase 4 onward.
+
+`useThemeTokens()` flattens the theme to plain values (colours, font, radius). It exists
+for consumers that are not MUI consumers — see `@gh/charts` below.
+
+### `@gh/charts`
+
+`ChartContainer` (frame, height, loading and empty states), `ChartDataTable` and
+`StarsBarChart`.
+
+No MUI, and no GitHub vocabulary: a chart takes `{ label, value, id? }` rows and a
+`ChartTheme` object, so it renders under the app's theme without depending on it, and is
+reusable against any data source. The two meet in exactly one file —
+`apps/web/src/app/useChartTheme.ts` maps `useThemeTokens()` onto `ChartTheme`.
+
+Sorting, formatting and what a bar click means are all the caller's: the stars chart is
+sorted desc by `selectStarsChartData`, formatted with `@gh/ui`'s compact formatter, and
+navigates to the repo's detail page.
+
+Accessibility: the plot is one `role="img"` node with a generated `aria-label`, and the
+same numbers are emitted as a visually-hidden table. When bars are clickable its labels
+are buttons, which is the keyboard path to what a click does — an SVG rect is not
+focusable. It is also what the tests assert on, since jsdom has no layout.
+
+The stars chart costs no request: it reads the RTK Query cache the cards already fill, so
+a refresh moves the bars for free.
 
 ### Data layer (`apps/web/src/store`)
 

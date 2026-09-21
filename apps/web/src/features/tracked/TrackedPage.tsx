@@ -16,6 +16,7 @@ import { selectTrackedRepo, selectTrackedRepos } from '@/store/tracked/selectors
 import { githubApi } from '@/store/api/githubApi.js';
 import { untrackRepo } from '@/store/tracked/trackedSlice.js';
 import { repoDetailPath, ROUTES } from '@/app/routes.js';
+import { StarsChart } from './StarsChart.js';
 import { TrackedRepoCard } from './TrackedRepoCard.js';
 
 /**
@@ -24,6 +25,9 @@ import { TrackedRepoCard } from './TrackedRepoCard.js';
  * Renders straight from the store, which holds references only — each card fetches what it
  * shows. The list itself (which repos, in what order) is the one thing that survives a
  * reload.
+ *
+ * The stars chart the grid reads the same query cache the cards fill, so it costs
+ * no request of its own and follows every refresh.
  *
  * "Refresh all" invalidates cache tags rather than fetching: the button is here and the
  * queries are on the cards, so RTK Query re-runs every subscription that provides a `Repo`
@@ -111,6 +115,10 @@ export function TrackedPage() {
             />
           </li>
         ))}
+      </Box>
+
+      <Box sx={{ mt: 3 }}>
+        <StarsChart />
       </Box>
 
       <ConfirmDialog

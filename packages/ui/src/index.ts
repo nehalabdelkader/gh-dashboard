@@ -10,6 +10,8 @@ export type { AppThemeProviderProps } from './theme/AppThemeProvider.js';
 export { useResolvedPaletteMode } from './theme/useResolvedPaletteMode.js';
 export { createAppTheme } from './theme/createAppTheme.js';
 export type { PaletteMode } from './theme/createAppTheme.js';
+export { useThemeTokens } from './theme/useThemeTokens.js';
+export type { ThemeTokens } from './theme/useThemeTokens.js';
 
 export { AppShell } from './components/AppShell.js';
 export type { AppShellProps } from './components/AppShell.js';
