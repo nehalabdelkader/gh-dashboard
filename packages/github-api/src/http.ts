@@ -41,6 +41,18 @@ export interface GhResponse<T> {
 
 export interface RequestOptions {
   signal?: AbortSignal | undefined;
+  /**
+   * Force a revalidation past the browser's HTTP cache.
+   *
+   * GitHub serves `Cache-Control: public, max-age=60`, so within a minute of the last call
+   * the browser answers from disk without opening a socket — which makes a user-initiated
+   * refresh a no-op that returns the same bytes it already had.
+   *
+   * `no-cache` (not `no-store`) is what this maps to: the request always goes out, but it
+   * still carries `If-None-Match`, so an unchanged resource comes back `304` — served from
+   * the cache, and **not billed against the rate limit**. Only a genuine change costs quota.
+   */
+  revalidate?: boolean | undefined;
 }
 
 export interface HttpClientConfig {
@@ -147,6 +159,9 @@ export async function request<T>(
   try {
     response = await config.fetch(url, {
       method: 'GET',
+      // The `cache` init option rather than a `Cache-Control` request header: that header
+      // is not CORS-safelisted, so sending it would add a preflight `OPTIONS` to every call.
+      cache: options.revalidate ? 'no-cache' : 'default',
       headers: buildHeaders(config),
       ...(options.signal ? { signal: options.signal } : {}),
     });

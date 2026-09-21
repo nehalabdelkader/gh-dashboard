@@ -23,6 +23,7 @@ import {
   type RateLimitSnapshot,
   type RepoDetail,
   type RepoRef,
+  type RequestOptions,
   type ResponseMeta,
   type SearchReposParams,
   type SearchResult,
@@ -59,23 +60,23 @@ const MAX_RETRIES = 2;
 async function perform(
   client: GitHubClient,
   request: GhRequest,
-  signal: AbortSignal,
+  options: RequestOptions,
 ): Promise<{ data: GhResult; meta: ResponseMeta }> {
   switch (request.type) {
     case 'searchRepos':
-      return client.searchRepositories(request.params, { signal });
+      return client.searchRepositories(request.params, options);
     case 'getRepo':
-      return client.getRepository(request.ref, { signal });
+      return client.getRepository(request.ref, options);
     case 'getLastCommit': {
-      const response = await client.getLastCommit(request.ref, { signal });
+      const response = await client.getLastCommit(request.ref, options);
       return { data: response.data ?? null, meta: response.meta };
     }
     case 'getLanguages':
-      return client.getLanguages(request.ref, { signal });
+      return client.getLanguages(request.ref, options);
     case 'getContributors':
-      return client.getContributors(request.ref, { signal });
+      return client.getContributors(request.ref, options);
     case 'getRateLimit':
-      return client.getRateLimit({ signal });
+      return client.getRateLimit(options);
   }
 }
 
@@ -91,7 +92,13 @@ export function createGhBaseQuery(options: GhBaseQueryOptions = {}): GhBaseQuery
 
   const rawBaseQuery: GhBaseQuery = async (request, api) => {
     try {
-      const { data, meta } = await perform(client, request, api.signal);
+      // `api.forced` is RTK Query's "the user asked for this" flag: `refetch()` and
+      // `forceRefetch` set it, a mount or an arg change does not. So ordinary navigation
+      // keeps the free disk cache and only a deliberate refresh pays for a round trip.
+      const { data, meta } = await perform(client, request, {
+        signal: api.signal,
+        revalidate: api.forced ?? false,
+      });
       // Every response carries the caller's remaining quota, so the chip stays current
       // without a dedicated request.
       if (meta.rateLimit) {
