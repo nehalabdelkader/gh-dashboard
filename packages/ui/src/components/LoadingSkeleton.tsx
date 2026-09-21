@@ -58,7 +58,7 @@ export function LoadingSkeleton({ variant = 'text', count = 1 }: LoadingSkeleton
       </Box>
       {items.map((i) =>
         variant === 'card' ? (
-          <Box key={i} sx={{ mb: 2 }}>
+          <Box key={i} sx={{ mb: 2, height: '100%' }}>
             <CardSkeleton />
           </Box>
         ) : variant === 'list-row' ? (
