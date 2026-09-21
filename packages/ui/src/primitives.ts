@@ -10,12 +10,16 @@
  * Anything with opinions in it — a card, a list row, an error state — is a real component
  * in `./components`, not a primitive.
  */
+export { default as Avatar } from '@mui/material/Avatar';
 export { default as Box } from '@mui/material/Box';
 export { default as Button } from '@mui/material/Button';
+export { default as Card } from '@mui/material/Card';
+export { default as CardContent } from '@mui/material/CardContent';
 export { default as Chip } from '@mui/material/Chip';
 export { default as CircularProgress } from '@mui/material/CircularProgress';
 export { default as Divider } from '@mui/material/Divider';
 export { default as IconButton } from '@mui/material/IconButton';
+export { default as LinearProgress } from '@mui/material/LinearProgress';
 export { default as Link } from '@mui/material/Link';
 export { default as Pagination } from '@mui/material/Pagination';
 export { default as Snackbar } from '@mui/material/Snackbar';

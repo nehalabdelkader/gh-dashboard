@@ -34,8 +34,8 @@ for consumers that are not MUI consumers — see `@gh/charts` below.
 
 ### `@gh/charts`
 
-`ChartContainer` (frame, height, loading and empty states), `ChartDataTable` and
-`StarsBarChart`.
+`ChartContainer` (frame, height, loading and empty states), `ChartDataTable`,
+`StarsBarChart` and `LanguagesDonut`.
 
 No MUI, and no GitHub vocabulary: a chart takes `{ label, value, id? }` rows and a
 `ChartTheme` object, so it renders under the app's theme without depending on it, and is
@@ -53,6 +53,25 @@ focusable. It is also what the tests assert on, since jsdom has no layout.
 
 The stars chart costs no request: it reads the RTK Query cache the cards already fill, so
 a refresh moves the bars for free.
+
+### Routes
+
+| Route                | What it does                                             |
+| -------------------- | -------------------------------------------------------- |
+| `/`                  | Debounced search, track/untrack per row, paging          |
+| `/tracked`           | One card per tracked repo, per-card refresh, stars chart |
+| `/repo/:owner/:name` | Deep view — stats, languages, contributors               |
+| `*`                  | Not found, no requests                                   |
+
+Every route is imported eagerly. Splitting the detail route out measured at 15 kB gzip
+off a 316 kB bundle — Recharts is the bulk of the weight and the tracked page's stars
+chart loads it anyway, so there was nothing worth deferring yet.
+
+The detail page's four queries are owned by the sections that render them, so a failed contributors call costs the contributors panel and nothing
+else — the same per-entity independence the tracked grid has, applied to one page.
+
+A 404 on the repo itself replaces the whole page — there is no repository for the other
+panels to describe. Every other failure is contained to its own section.
 
 ### Data layer (`apps/web/src/store`)
 

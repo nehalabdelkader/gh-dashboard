@@ -10,6 +10,7 @@ import {
 } from 'recharts';
 import { ChartContainer } from './ChartContainer.js';
 import { ChartDataTable } from './ChartDataTable.js';
+import { describeSeries, formatPlain, truncateTick } from './describe.js';
 import type { ChartDatum, ChartTheme, ValueFormatter } from './types.js';
 
 export interface StarsBarChartProps {
@@ -32,30 +33,6 @@ export interface StarsBarChartProps {
   categoryLabel?: string | undefined;
 }
 
-const MAX_TICK_CHARS = 14;
-
-function truncate(label: string): string {
-  return label.length > MAX_TICK_CHARS ? `${label.slice(0, MAX_TICK_CHARS - 1)}…` : label;
-}
-
-/**
- * Describes the plot in one sentence: what it is, how many bars, and the range.
- *
- * Generated rather than required so a caller gets a usable label for free, and can still
- * override it when the default reads badly.
- */
-function describe(data: readonly ChartDatum[], format: ValueFormatter, what: string): string {
-  const first = data[0];
-  const last = data[data.length - 1];
-  if (!first || !last) return `Bar chart of ${what}. No data.`;
-  const count = `${String(data.length)} item${data.length === 1 ? '' : 's'}`;
-  if (data.length === 1) return `Bar chart of ${what}: ${first.label}, ${format(first.value)}.`;
-  return (
-    `Bar chart of ${what}: ${count}, from ${first.label} at ${format(first.value)} ` +
-    `to ${last.label} at ${format(last.value)}.`
-  );
-}
-
 /**
  * A single-series bar chart.
  *
@@ -68,7 +45,7 @@ export function StarsBarChart({
   theme,
   orientation = 'vertical',
   onBarClick,
-  formatValue = (value) => value.toLocaleString(),
+  formatValue = formatPlain,
   title,
   description,
   loading,
@@ -81,7 +58,8 @@ export function StarsBarChart({
 }: StarsBarChartProps) {
   const horizontal = orientation === 'horizontal';
   const fill = theme.series[0] ?? theme.text;
-  const label = ariaLabel ?? describe(data, formatValue, valueLabel.toLowerCase());
+  const label =
+    ariaLabel ?? describeSeries('Bar chart', data, formatValue, valueLabel.toLowerCase());
 
   // Recharts mutates nothing, but it does want a mutable array.
   const rows = [...data];
@@ -97,7 +75,7 @@ export function StarsBarChart({
   const categoryAxis = {
     type: 'category',
     dataKey: 'label',
-    tickFormatter: truncate,
+    tickFormatter: truncateTick,
     interval: 0,
     ...(horizontal ? { width: 112 } : {}),
   } as const;

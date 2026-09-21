@@ -10,6 +10,8 @@ export { ChartContainer } from './ChartContainer.js';
 export type { ChartContainerProps } from './ChartContainer.js';
 export { ChartDataTable } from './ChartDataTable.js';
 export type { ChartDataTableProps } from './ChartDataTable.js';
+export { LanguagesDonut } from './LanguagesDonut.js';
+export type { LanguagesDonutProps } from './LanguagesDonut.js';
 export { StarsBarChart } from './StarsBarChart.js';
 export type { StarsBarChartProps } from './StarsBarChart.js';
 export type { ChartDatum, ChartTheme, ValueFormatter } from './types.js';

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
 import {
   Button,
@@ -16,6 +17,7 @@ import { useSearchReposQuery } from '@/store/api/githubApi.js';
 import { toErrorDisplay, toErrorStateProps } from '@/store/api/errorCopy.js';
 import { useAppSelector, useAppDispatch } from '@/store/hooks.js';
 import { trackRepo, untrackRepo } from '@/store/tracked/trackedSlice.js';
+import { repoDetailPath } from '@/app/routes.js';
 
 /** Below this, results are noise — and search has its own 10 req/min bucket to protect. */
 export const MIN_QUERY_LENGTH = 2;
@@ -27,6 +29,7 @@ export function SearchPage() {
   const { page, perPage, next, previous, reset, canPrevious } = usePagination({ perPage: 20 });
 
   // --- store ---
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const trackedEntities = useAppSelector((state) => state.tracked.entities);
 
@@ -99,6 +102,7 @@ export function SearchPage() {
             items={data?.items ?? []}
             isTracked={isTracked}
             onToggleTrack={onToggleTrack}
+            onOpen={(row) => void navigate(repoDetailPath(row.owner, row.name))}
             loading={isFetching}
             error={display ? toErrorStateProps(display, refetch) : undefined}
           />
