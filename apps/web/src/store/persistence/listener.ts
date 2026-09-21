@@ -12,11 +12,7 @@
  * that change *which* repos are tracked. Refreshing a card writes nothing to disk at all.
  */
 import { createListenerMiddleware, isAnyOf, type TypedStartListening } from '@reduxjs/toolkit';
-import {
-  refreshConcurrencyChanged,
-  settingsReplaced,
-  themeModeChanged,
-} from '../settings/settingsSlice.js';
+import { settingsReplaced, themeModeChanged } from '../settings/settingsSlice.js';
 import { trackRepo, trackedReplaced, untrackRepo } from '../tracked/trackedSlice.js';
 import type { AppDispatch, RootState } from '../types.js';
 import {
@@ -52,7 +48,7 @@ export function createPersistenceMiddleware(debounceMs: number = WRITE_DEBOUNCE_
   });
 
   startListening({
-    matcher: isAnyOf(themeModeChanged, refreshConcurrencyChanged, settingsReplaced),
+    matcher: isAnyOf(themeModeChanged, settingsReplaced),
     effect: async (_action, api) => {
       api.cancelActiveListeners();
       await api.delay(debounceMs);

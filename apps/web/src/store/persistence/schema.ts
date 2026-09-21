@@ -132,15 +132,11 @@ const THEME_MODES: readonly ThemeMode[] = ['light', 'dark', 'system'];
 export function parseSettingsState(value: unknown): SettingsState | undefined {
   if (!isRecord(value)) return undefined;
   const themeMode = value['themeMode'];
-  const concurrency = value['refreshConcurrency'];
+  // Rebuilt field by field rather than spread, so a blob written by an older build contributes only what the current shape declares.
   return {
-    // Each field falls back independently: one unknown theme must not reset concurrency.
     themeMode: THEME_MODES.includes(themeMode as ThemeMode)
       ? (themeMode as ThemeMode)
       : initialSettingsState.themeMode,
-    refreshConcurrency: isFiniteNumber(concurrency)
-      ? Math.min(6, Math.max(1, Math.round(concurrency)))
-      : initialSettingsState.refreshConcurrency,
   };
 }
 
